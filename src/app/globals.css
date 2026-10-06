@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: #0d0f17;
+  --color-surface: #161926;
+  --color-surface-2: #1f2333;
+  --color-line: #2c3146;
+  --color-text: #eef0f6;
+  --color-muted: #9097ad;
+  --color-accent: #f5b83d;
+  --color-accent-ink: #1d1503;
+  --color-taken: #3a3f56;
+  --color-danger: #f0616d;
+  --color-ok: #4cc38a;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgb(245 184 61 / 0.12), transparent 70%),
+    var(--color-bg);
+  background-attachment: fixed;
+  color: var(--color-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Curved glowing "screen" above the seat map */
+.screen {
+  height: 10px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(to bottom, var(--color-accent), rgb(245 184 61 / 0.25));
+  box-shadow: 0 10px 40px 4px rgb(245 184 61 / 0.25);
+}
+
+/* Ticket perforation */
+.perforation {
+  background-image: radial-gradient(circle, var(--color-bg) 5px, transparent 5.5px);
+  background-size: 18px 12px;
+  background-position: center;
+  background-repeat: repeat-x;
+  height: 12px;
+}
