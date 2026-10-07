@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { maxSeatsPerBooking } from "@/config/event";
 import { getTakenSeats } from "@/lib/db";
-import { getSettings, formatEventDate } from "@/lib/settings";
+import { getActiveEvent, formatEventDate } from "@/lib/events";
 import { layoutFor, bookableCount, isBookableSeat } from "@/lib/seats";
 import { SeatPicker } from "@/components/SeatPicker";
 import { EventInfo } from "@/components/EventInfo";
@@ -9,7 +9,7 @@ import { EventInfo } from "@/components/EventInfo";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = await getSettings();
+  const s = await getActiveEvent();
   return {
     title: `${s.fellowshipTitle} · ${s.movieTitle}`,
     description: `${formatEventDate(s.eventDate)} · ${s.location}. Pilih kursimu sekarang!`,
@@ -17,9 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const settings = await getSettings();
+  const settings = await getActiveEvent();
   const layout = layoutFor(settings);
-  const taken = (await getTakenSeats()).filter((s) => isBookableSeat(layout, s));
+  const taken = (await getTakenSeats(settings.id)).filter((s) => isBookableSeat(layout, s));
   const available = bookableCount(layout) - taken.length;
 
   return (

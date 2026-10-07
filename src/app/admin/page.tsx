@@ -2,31 +2,26 @@ import type { Metadata } from "next";
 import { whatsappReminder } from "@/config/event";
 import { isAdmin } from "@/lib/auth";
 import { getBookings, type Booking } from "@/lib/db";
-import { getSettings, formatEventDate, formatEventTime } from "@/lib/settings";
+import { getActiveEvent, formatClock, formatEventDate, formatEventTime, formatStamp } from "@/lib/events";
 import { layoutFor, bookableCount, isBookableSeat } from "@/lib/seats";
 import { formatPhone, waLink } from "@/lib/phone";
+import { ticketPath } from "@/lib/ticket";
+import { getOrigin } from "@/lib/url";
 import { SeatMap } from "@/components/SeatMap";
 import { LoginForm } from "./LoginForm";
 import { ConfirmButton } from "./ConfirmButton";
 import { AdminHeader } from "./AdminHeader";
-import { deleteBooking, resetAll } from "./actions";
+import { archiveAndStartNew, deleteBooking } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
-const timeFmt = new Intl.DateTimeFormat("id-ID", {
-  timeZone: "Asia/Jakarta",
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 export default async function AdminPage() {
   if (!(await isAdmin())) return <LoginForm />;
 
-  const [settings, bookings] = await Promise.all([getSettings(), getBookings()]);
-  const layout = layoutFor(settings);
+  const event = await getActiveEvent();
+  const [bookings, origin] = await Promise.all([getBookings(event.id), getOrigin()]);
+  const layout = layoutFor(event);
   const taken = new Set(bookings.map((b) => b.seat_code));
   const registered = bookings.filter((b) => isBookableSeat(layout, b.seat_code)).length;
   const total = bookableCount(layout);
@@ -35,15 +30,17 @@ export default async function AdminPage() {
   const groups = new Map<string, Booking[]>();
   for (const b of bookings) groups.set(b.group_id, [...(groups.get(b.group_id) ?? []), b]);
 
+  // WhatsApp message with event reminder + the person's ticket link.
   const reminder = (b: Booking) =>
     whatsappReminder({
       name: b.name,
       seat: b.seat_code,
-      fellowship: settings.fellowshipTitle,
-      movie: settings.movieTitle,
-      date: formatEventDate(settings.eventDate),
-      time: formatEventTime(settings.eventTime),
-      location: settings.location,
+      fellowship: event.fellowshipTitle,
+      movie: event.movieTitle,
+      date: formatEventDate(event.eventDate),
+      time: formatEventTime(event.eventTime),
+      location: event.location,
+      ticketUrl: origin + ticketPath(b.group_id),
     });
 
   const stats = [
@@ -54,7 +51,7 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <AdminHeader settings={settings} active="/admin" />
+      <AdminHeader event={event} active="/admin" />
 
       <section className="grid grid-cols-3 gap-3">
         {stats.map((s) => (
@@ -82,7 +79,7 @@ export default async function AdminPage() {
                 <li key={group[0].group_id} className={group.length > 1 ? "border-l-2 border-accent/60" : ""}>
                   {group.length > 1 && (
                     <p className="px-4 pt-3 text-xs font-semibold text-accent">
-                      Dipesan bersama · {group.length} kursi · {timeFmt.format(group[0].created_at)}
+                      Dipesan bersama · {group.length} kursi · {formatStamp(group[0].created_at)}
                     </p>
                   )}
                   <ul>
@@ -92,16 +89,22 @@ export default async function AdminPage() {
                           {b.seat_code}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold">
-                            {b.name}
+                          <p className="flex items-center gap-2 font-semibold">
+                            <span className="truncate">{b.name}</span>
+                            {b.checked_in_at && (
+                              <span className="shrink-0 rounded-full bg-ok/15 px-2 py-0.5 text-[11px] font-semibold text-ok">
+                                Hadir {formatClock(b.checked_in_at)}
+                              </span>
+                            )}
                             {!isBookableSeat(layout, b.seat_code) && (
-                              <span className="ml-2 text-xs font-normal text-danger">(di luar denah)</span>
+                              <span className="shrink-0 text-xs font-normal text-danger">(di luar denah)</span>
                             )}
                           </p>
                           <a
                             href={waLink(b.phone, reminder(b))}
                             target="_blank"
                             rel="noopener noreferrer"
+                            title="Kirim pengingat + link tiket lewat WhatsApp"
                             className="text-sm text-ok underline-offset-2 hover:underline"
                           >
                             {formatPhone(b.phone)} ↗
@@ -109,7 +112,7 @@ export default async function AdminPage() {
                         </div>
                         {group.length === 1 && (
                           <span className="hidden shrink-0 text-xs text-muted sm:block">
-                            {timeFmt.format(b.created_at)}
+                            {formatStamp(b.created_at)}
                           </span>
                         )}
                         <form action={deleteBooking}>
@@ -128,6 +131,11 @@ export default async function AdminPage() {
               ))}
             </ul>
           )}
+          {bookings.length > 0 && (
+            <p className="border-t border-line px-4 py-3 text-xs text-muted">
+              Ketuk nomor WhatsApp untuk mengirim pengingat beserta link tiket &amp; QR.
+            </p>
+          )}
         </section>
 
         <aside className="space-y-4">
@@ -144,17 +152,18 @@ export default async function AdminPage() {
             <SeatMap layout={layout} taken={taken} size="sm" />
           </section>
 
-          {bookings.length > 0 && (
-            <form action={resetAll} className="rounded-2xl border border-danger/30 p-4">
-              <p className="text-sm text-muted">Selesai acara? Kosongkan semua kursi untuk acara berikutnya.</p>
-              <ConfirmButton
-                message={`Hapus SEMUA ${bookings.length} pendaftar? Tindakan ini tidak bisa dibatalkan.`}
-                className="mt-3 w-full rounded-lg bg-danger/15 py-2 text-sm font-semibold text-danger hover:bg-danger/25"
-              >
-                Hapus semua pendaftar
-              </ConfirmButton>
-            </form>
-          )}
+          <form action={archiveAndStartNew} className="rounded-2xl border border-line p-4">
+            <p className="text-sm text-muted">
+              Selesai acara? Arsipkan acara ini (data pendaftar &amp; kehadiran tetap tersimpan di Riwayat) lalu mulai
+              acara baru dengan denah kosong.
+            </p>
+            <ConfirmButton
+              message="Arsipkan acara ini dan mulai acara baru? Denah kursi akan kosong untuk acara berikutnya."
+              className="mt-3 w-full rounded-lg bg-surface-2 py-2 text-sm font-semibold hover:text-accent"
+            >
+              Arsipkan &amp; mulai acara baru
+            </ConfirmButton>
+          </form>
         </aside>
       </div>
     </main>

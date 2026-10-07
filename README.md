@@ -4,9 +4,12 @@ A small seat-booking app for the church movie fellowship.
 
 - `/` shows the seat map. A guest picks **1 to 6** free seats.
 - `/booking?seats=C5,C6` is where the guest enters a name and WhatsApp number for each seat. One number can be reused inside a single booking (for example, parents booking for their kids), but it can't be used again in a separate booking.
-- `/sukses` shows the confirmation ticket with every seat and name, plus the event details.
-- `/admin` is password-protected. It shows counts and the registrants (seats booked together are grouped), each with a WhatsApp link. Delete frees a seat, and there's a reset for the next event.
-- `/admin/pengaturan` is where the admin edits the fellowship title, movie title, date, time, location and the seat grid (rows × seats per row).
+- `/tiket/<id>` is the guest's ticket: every seat and name, the event details, a **QR code** and a short ticket code. "Simpan Tiket (Gambar)" downloads the whole ticket as a PNG. The QR holds the ticket link, so scanning it with any phone camera reopens the ticket.
+- `/admin` is password-protected and has four tabs:
+  - **Pendaftar**: registrants (seats booked together are grouped) with attendance badges. Tapping a phone number opens WhatsApp with a reminder and the person's ticket link. Delete frees a seat. "Arsipkan & mulai acara baru" archives the event and starts a new one with an empty seat map.
+  - **Kehadiran**: scan a ticket QR with the phone camera, or type the ticket code. Tick who actually came and save; rescanning later lets you add latecomers. Add **walk-ins** (name required, phone optional) for people who didn't register. It shows the attendance recap and a **Download rekap (Excel)** button.
+  - **Pengaturan**: fellowship title, movie title, date, time, location and the seat grid (rows × seats per row).
+  - **Riwayat**: archived events, each with its attendance recap, the full list of attendees and an Excel download.
 
 Stack: Next.js 16 · PostgreSQL · Tailwind CSS · Docker (deployed with Coolify).
 
@@ -30,9 +33,8 @@ A few things are still set in code, in **`src/config/event.ts`**. Commit and pus
 | --- | --- |
 | `maxSeatsPerBooking` | Maximum seats per booking (default 6) |
 | `blockedSeats` | Seats that can't be booked, such as reserved seats. Example: `["A1","A2"]` |
-| `arrivalNote` | The "datang lebih awal" note on the confirmation page |
-| `whatsappReminder()` | Message pre-filled when the admin taps a phone number |
-| `defaultSettings` | Values used until the admin saves the settings for the first time |
+| `arrivalNote` | The "datang lebih awal" note on the ticket page |
+| `whatsappReminder()` | Message pre-filled when the admin taps a phone number (includes the ticket link) |
 
 ---
 
@@ -91,6 +93,10 @@ Then paste the contents of `db/schema.sql`.
 
 Every `git push` to `main` redeploys the app automatically.
 
+Optional: `APP_URL` (for example `https://nonton.yourdomain.org`) fixes the base URL used in ticket QR codes and WhatsApp links. Without it, the app uses the domain the request came in on, which is normally correct behind Coolify.
+
+> The QR scanner uses the phone camera, which browsers only allow over **HTTPS**. It works on your Coolify domain, but not over plain `http://<ip>`.
+
 ### Troubleshooting
 - **`[migrate] failed: getaddrinfo ENOTFOUND ...`**: the app can't reach the database. Make sure you used the *internal* URL and that both resources are on the same server and network. If they still can't connect, enable **Connect to Predefined Network** on the app.
 - **Admin login keeps returning to the password screen**: open the site over `https://`. The login cookie is "secure" in production.
@@ -120,16 +126,20 @@ npm run dev        # http://localhost:3000
 ## Project layout
 
 ```
-db/schema.sql              bookings + settings tables (also upgrades older databases)
+db/schema.sql              events, bookings, walk_ins (also upgrades older databases)
 scripts/migrate.mjs        applies the schema (runs on every container start)
 src/config/event.ts        defaults, max seats per booking, blocked seats, message texts
 src/lib/                   db, settings, seat layout, phone normalisation, admin session
 src/components/            seat map, seat picker, event info
 src/app/page.tsx           seat selection
 src/app/booking/           name + phone form, booking server action
-src/app/sukses/            confirmation ticket
+src/app/tiket/[id]/        ticket page with QR; gambar/ renders the ticket as a PNG
 src/app/admin/             login, dashboard, delete/reset actions
-src/app/admin/pengaturan/  event settings form (stored in the `settings` table)
+src/app/admin/kehadiran/   QR scanner, check-in, walk-ins
+src/app/admin/pengaturan/  event settings form
+src/app/admin/riwayat/     archived events and their recap
+src/app/admin/rekap/       Excel export of an event's attendance
+assets/fonts/              fonts used to draw the ticket image
 ```
 
 Phone numbers are stored in international form (`0812…` and `+62 812…` both become `62812…`). That way the same number is recognized however it's typed, and the WhatsApp links (`https://wa.me/62…`) work.

@@ -1,4 +1,4 @@
-import { formatEventDate, formatEventTime, type EventSettings } from "@/lib/settings";
+import { formatEventDate, formatEventTime, type EventSettings } from "@/lib/events";
 
 export function EventInfo({ settings, compact = false }: { settings: EventSettings; compact?: boolean }) {
   const items = [

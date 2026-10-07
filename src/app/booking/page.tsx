@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { maxSeatsPerBooking } from "@/config/event";
 import { getTakenSeats } from "@/lib/db";
-import { getSettings, formatEventDate, formatEventTime } from "@/lib/settings";
+import { getActiveEvent, formatEventDate, formatEventTime } from "@/lib/events";
 import { isBookableSeat, layoutFor, sortSeats } from "@/lib/seats";
 import { BookingForm } from "./BookingForm";
 
@@ -14,7 +14,7 @@ export default async function BookingPage({
   searchParams: Promise<{ seats?: string; seat?: string }>;
 }) {
   const sp = await searchParams;
-  const settings = await getSettings();
+  const settings = await getActiveEvent();
   const layout = layoutFor(settings);
 
   const seats = sortSeats([
@@ -26,7 +26,7 @@ export default async function BookingPage({
         .filter(Boolean),
     ),
   ]);
-  const takenSet = new Set(await getTakenSeats());
+  const takenSet = new Set(await getTakenSeats(settings.id));
   const invalid = seats.length === 0 || seats.length > maxSeatsPerBooking || !seats.every((s) => isBookableSeat(layout, s));
   const taken = invalid ? [] : seats.filter((s) => takenSet.has(s));
 

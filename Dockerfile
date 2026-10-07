@@ -24,6 +24,7 @@ COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
 COPY --from=build --chown=app:app /app/db ./db
 COPY --from=build --chown=app:app /app/scripts ./scripts
+COPY --from=build --chown=app:app /app/assets ./assets
 USER app
 
 EXPOSE 3000

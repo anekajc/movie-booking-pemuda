@@ -1,17 +1,6 @@
-// Static settings. Event details and the seat grid size are edited in /admin/pengaturan;
-// the values here are only used until the admin saves them for the first time.
+// Static settings. Event details and the seat grid size are edited in /admin/pengaturan.
 
-export const defaultSettings = {
-  fellowshipTitle: "Test Fellowship",
-  movieTitle: "Judul Film",
-  location: "GSG Lt. 2",
-  eventDate: "2026-10-17", // YYYY-MM-DD
-  eventTime: "18:30", // HH:MM
-  rows: 6,
-  seatsPerRow: 10,
-};
-
-// Shown on the confirmation page.
+// Shown on the ticket page.
 export const arrivalNote = "Datang 15 menit lebih awal ya, supaya bisa duduk dengan tenang sebelum film dimulai.";
 
 // Time zone label shown after the event time.
@@ -35,6 +24,11 @@ export function whatsappReminder(e: {
   date: string;
   time: string;
   location: string;
+  ticketUrl: string;
 }) {
-  return `Shalom ${e.name}! Mengingatkan acara ${e.fellowship} (${e.movie}) pada ${e.date} pukul ${e.time} di ${e.location}. Kursi kamu: ${e.seat}. Sampai jumpa! 🙏`;
+  return `Shalom ${e.name}! Mengingatkan acara ${e.fellowship} (${e.movie}) pada ${e.date} pukul ${e.time} di ${e.location}. Kursi kamu: ${e.seat}.
+
+Tiket & QR kamu (tunjukkan saat datang): ${e.ticketUrl}
+
+Sampai jumpa! 🙏`;
 }

@@ -4,8 +4,9 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { maxSeatsPerBooking } from "@/config/event";
 import { pool } from "@/lib/db";
-import { getLayout } from "@/lib/settings";
-import { isBookableSeat } from "@/lib/seats";
+import { getActiveEvent } from "@/lib/events";
+import { isBookableSeat, layoutFor } from "@/lib/seats";
+import { ticketPath } from "@/lib/ticket";
 import { formatPhone, normalizePhone } from "@/lib/phone";
 
 export type BookingState = {
@@ -17,7 +18,8 @@ export type BookingState = {
 };
 
 export async function createBooking(_prev: BookingState, formData: FormData): Promise<BookingState> {
-  const layout = await getLayout();
+  const event = await getActiveEvent();
+  const layout = layoutFor(event);
   const seats = formData.getAll("seat").map((v) => String(v).toUpperCase());
   const names = formData.getAll("name").map((v) => String(v).trim().replace(/\s+/g, " "));
   const phones = formData.getAll("phone").map((v) => normalizePhone(String(v)));
@@ -55,8 +57,8 @@ export async function createBooking(_prev: BookingState, formData: FormData): Pr
       await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [phone]);
     }
     const { rows: used } = await client.query<{ phone: string; seat_code: string }>(
-      "SELECT phone, seat_code FROM bookings WHERE phone = ANY($1) ORDER BY seat_code",
-      [uniquePhones],
+      "SELECT phone, seat_code FROM bookings WHERE event_id = $1 AND phone = ANY($2) ORDER BY seat_code",
+      [event.id, uniquePhones],
     );
     if (used.length) {
       await client.query("ROLLBACK");
@@ -69,7 +71,8 @@ export async function createBooking(_prev: BookingState, formData: FormData): Pr
     }
 
     for (const p of people) {
-      await client.query("INSERT INTO bookings (group_id, seat_code, name, phone) VALUES ($1, $2, $3, $4)", [
+      await client.query("INSERT INTO bookings (event_id, group_id, seat_code, name, phone) VALUES ($1, $2, $3, $4, $5)", [
+        event.id,
         groupId,
         p.seat,
         p.name,
@@ -81,8 +84,8 @@ export async function createBooking(_prev: BookingState, formData: FormData): Pr
     await client.query("ROLLBACK").catch(() => {});
     if ((err as { code?: string }).code === "23505") {
       const { rows } = await pool.query<{ seat_code: string }>(
-        "SELECT seat_code FROM bookings WHERE seat_code = ANY($1) ORDER BY seat_code",
-        [seats],
+        "SELECT seat_code FROM bookings WHERE event_id = $1 AND seat_code = ANY($2) ORDER BY seat_code",
+        [event.id, seats],
       );
       const lost = rows.map((r) => r.seat_code).join(", ") || "yang kamu pilih";
       return { error: `Maaf, kursi ${lost} baru saja diambil orang lain. Silakan pilih ulang.`, reselect: true };
@@ -93,5 +96,5 @@ export async function createBooking(_prev: BookingState, formData: FormData): Pr
     client.release();
   }
 
-  redirect(`/sukses?g=${groupId}`);
+  redirect(`${ticketPath(groupId)}?baru=1`);
 }

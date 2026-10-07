@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { gridLimits } from "@/config/event";
 import { bookableCount, layoutFor } from "@/lib/seats";
-import type { EventSettings } from "@/lib/settings";
+import type { EventSettings } from "@/lib/events";
 import { SeatMap } from "@/components/SeatMap";
 import { updateSettings, type SettingsState } from "../actions";
 
