@@ -37,6 +37,16 @@ body {
   box-shadow: 0 10px 40px 4px rgb(245 184 61 / 0.25);
 }
 
+/* Edge glow on a horizontally scrollable area, only on the side that has more content.
+   The "local" covers scroll with the content and hide the glow once an edge is reached. */
+.scroll-x-hint {
+  background:
+    linear-gradient(to right, var(--color-surface), transparent) left / 20px 100% no-repeat local,
+    linear-gradient(to left, var(--color-surface), transparent) right / 20px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(245 184 61 / 0.35), transparent) left / 10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(245 184 61 / 0.35), transparent) right / 10px 100% no-repeat scroll;
+}
+
 /* Ticket perforation */
 .perforation {
   background-image: radial-gradient(circle, var(--color-bg) 5px, transparent 5.5px);

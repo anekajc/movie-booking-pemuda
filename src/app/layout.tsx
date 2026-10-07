@@ -1,14 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { event } from "@/config/event";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
 
-export const metadata: Metadata = {
-  title: event.title,
-  description: `${event.movie} · ${event.date} · ${event.location}. Pilih kursimu sekarang!`,
-};
+// Pages set their own title from the event settings stored in the database.
+export const metadata: Metadata = { title: "Nonton Bareng" };
 
 export const viewport: Viewport = {
   themeColor: "#0d0f17",

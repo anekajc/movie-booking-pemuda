@@ -3,14 +3,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { maxSeatsPerBooking } from "@/config/event";
+import { sortSeats, type SeatLayout } from "@/lib/seats";
 import { SeatMap, SeatLegend } from "./SeatMap";
 
 const REFRESH_MS = 15_000;
 
-export function SeatPicker({ takenSeats, available }: { takenSeats: string[]; available: number }) {
+export function SeatPicker({
+  layout,
+  takenSeats,
+  available,
+}: {
+  layout: SeatLayout;
+  takenSeats: string[];
+  available: number;
+}) {
   const router = useRouter();
   const taken = useMemo(() => new Set(takenSeats), [takenSeats]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [limitHit, setLimitHit] = useState(false);
 
   // Keep the map fresh so people don't pick seats that were just taken.
   useEffect(() => {
@@ -18,7 +29,19 @@ export function SeatPicker({ takenSeats, available }: { takenSeats: string[]; av
     return () => clearInterval(id);
   }, [router]);
 
-  const current = selected && !taken.has(selected) ? selected : null;
+  useEffect(() => {
+    if (!limitHit) return;
+    const id = setTimeout(() => setLimitHit(false), 2500);
+    return () => clearTimeout(id);
+  }, [limitHit]);
+
+  const current = sortSeats(selected.filter((s) => !taken.has(s)));
+
+  function toggle(seat: string) {
+    if (current.includes(seat)) return setSelected(current.filter((s) => s !== seat));
+    if (current.length >= maxSeatsPerBooking) return setLimitHit(true);
+    setSelected([...current, seat]);
+  }
 
   return (
     <>
@@ -28,7 +51,7 @@ export function SeatPicker({ takenSeats, available }: { takenSeats: string[]; av
         </div>
         <p className="mb-6 text-center text-[10px] font-semibold tracking-[0.4em] text-muted">LAYAR</p>
 
-        <SeatMap taken={taken} selected={current} onSelect={(s) => setSelected(s === current ? null : s)} />
+        <SeatMap layout={layout} taken={taken} selected={current} onSelect={toggle} />
 
         <div className="mt-6">
           <SeatLegend />
@@ -48,19 +71,25 @@ export function SeatPicker({ takenSeats, available }: { takenSeats: string[]; av
       {/* Sticky bottom bar */}
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-bg/90 backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-4 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div>
-            <p className="text-xs text-muted">Kursi dipilih</p>
-            <p className="text-xl font-bold text-accent">{current ?? "—"}</p>
+          <div className="min-w-0">
+            <p className={`text-xs ${limitHit ? "font-semibold text-danger" : "text-muted"}`} aria-live="polite">
+              {limitHit
+                ? `Maksimal ${maxSeatsPerBooking} kursi per pesanan`
+                : current.length > 0
+                  ? `${current.length} kursi dipilih`
+                  : "Kursi dipilih"}
+            </p>
+            <p className="truncate text-xl font-bold text-accent">{current.length ? current.join(", ") : "—"}</p>
           </div>
-          {current ? (
+          {current.length > 0 ? (
             <Link
-              href={`/booking?seat=${current}`}
-              className="rounded-xl bg-accent px-6 py-3 font-semibold text-accent-ink transition active:scale-95"
+              href={`/booking?seats=${current.join(",")}`}
+              className="shrink-0 rounded-xl bg-accent px-6 py-3 font-semibold text-accent-ink transition active:scale-95"
             >
               Lanjut →
             </Link>
           ) : (
-            <span className="rounded-xl bg-surface-2 px-6 py-3 font-semibold text-muted">Pilih kursi</span>
+            <span className="shrink-0 rounded-xl bg-surface-2 px-6 py-3 font-semibold text-muted">Pilih kursi</span>
           )}
         </div>
       </div>

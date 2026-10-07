@@ -1,10 +1,10 @@
-import { event } from "@/config/event";
+import { formatEventDate, formatEventTime, type EventSettings } from "@/lib/settings";
 
-export function EventInfo({ compact = false }: { compact?: boolean }) {
+export function EventInfo({ settings, compact = false }: { settings: EventSettings; compact?: boolean }) {
   const items = [
-    { label: "Tanggal", value: event.date },
-    { label: "Jam", value: event.time },
-    { label: "Tempat", value: event.location },
+    { label: "Tanggal", value: formatEventDate(settings.eventDate) },
+    { label: "Jam", value: formatEventTime(settings.eventTime) },
+    { label: "Tempat", value: settings.location },
   ];
   return (
     <dl className={compact ? "grid grid-cols-3 gap-2 text-center" : "space-y-2"}>

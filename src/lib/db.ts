@@ -1,4 +1,7 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// Keep DATE columns as "YYYY-MM-DD" strings instead of local-midnight Date objects.
+types.setTypeParser(types.builtins.DATE, (v) => v);
 
 const globalForPg = globalThis as unknown as { pgPool?: Pool };
 
@@ -9,6 +12,7 @@ if (process.env.NODE_ENV !== "production") globalForPg.pgPool = pool;
 
 export type Booking = {
   id: number;
+  group_id: string;
   seat_code: string;
   name: string;
   phone: string;
@@ -20,14 +24,17 @@ export async function getTakenSeats(): Promise<string[]> {
   return rows.map((r) => r.seat_code);
 }
 
-export async function isSeatTaken(seat: string) {
-  const { rowCount } = await pool.query("SELECT 1 FROM bookings WHERE seat_code = $1", [seat]);
-  return (rowCount ?? 0) > 0;
-}
-
 export async function getBookings(): Promise<Booking[]> {
   const { rows } = await pool.query<Booking>(
-    "SELECT id, seat_code, name, phone, created_at FROM bookings ORDER BY created_at DESC",
+    "SELECT id, group_id, seat_code, name, phone, created_at FROM bookings ORDER BY created_at DESC, id",
+  );
+  return rows;
+}
+
+export async function getGroup(groupId: string): Promise<Booking[]> {
+  const { rows } = await pool.query<Booking>(
+    "SELECT id, group_id, seat_code, name, phone, created_at FROM bookings WHERE group_id = $1 ORDER BY id",
+    [groupId],
   );
   return rows;
 }

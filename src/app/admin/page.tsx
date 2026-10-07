@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { event, whatsappReminder } from "@/config/event";
+import { whatsappReminder } from "@/config/event";
 import { isAdmin } from "@/lib/auth";
-import { getBookings } from "@/lib/db";
-import { totalSeats, isBookableSeat } from "@/lib/seats";
+import { getBookings, type Booking } from "@/lib/db";
+import { getSettings, formatEventDate, formatEventTime } from "@/lib/settings";
+import { layoutFor, bookableCount, isBookableSeat } from "@/lib/seats";
 import { formatPhone, waLink } from "@/lib/phone";
 import { SeatMap } from "@/components/SeatMap";
 import { LoginForm } from "./LoginForm";
 import { ConfirmButton } from "./ConfirmButton";
-import { deleteBooking, logout, resetAll } from "./actions";
+import { AdminHeader } from "./AdminHeader";
+import { deleteBooking, resetAll } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -23,30 +25,36 @@ const timeFmt = new Intl.DateTimeFormat("id-ID", {
 export default async function AdminPage() {
   if (!(await isAdmin())) return <LoginForm />;
 
-  const bookings = await getBookings();
+  const [settings, bookings] = await Promise.all([getSettings(), getBookings()]);
+  const layout = layoutFor(settings);
   const taken = new Set(bookings.map((b) => b.seat_code));
-  const registered = bookings.filter((b) => isBookableSeat(b.seat_code)).length;
+  const registered = bookings.filter((b) => isBookableSeat(layout, b.seat_code)).length;
+  const total = bookableCount(layout);
+
+  // Bookings arrive newest first; keep that order and gather seats booked together.
+  const groups = new Map<string, Booking[]>();
+  for (const b of bookings) groups.set(b.group_id, [...(groups.get(b.group_id) ?? []), b]);
+
+  const reminder = (b: Booking) =>
+    whatsappReminder({
+      name: b.name,
+      seat: b.seat_code,
+      fellowship: settings.fellowshipTitle,
+      movie: settings.movieTitle,
+      date: formatEventDate(settings.eventDate),
+      time: formatEventTime(settings.eventTime),
+      location: settings.location,
+    });
 
   const stats = [
     { label: "Terdaftar", value: registered, cls: "text-accent" },
-    { label: "Kursi tersisa", value: totalSeats - registered, cls: "text-ok" },
-    { label: "Total kursi", value: totalSeats, cls: "text-text" },
+    { label: "Kursi tersisa", value: total - registered, cls: "text-ok" },
+    { label: "Total kursi", value: total, cls: "text-text" },
   ];
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">Admin</p>
-          <h1 className="mt-1 text-2xl font-extrabold">{event.movie}</h1>
-          <p className="text-sm text-muted">
-            {event.date} · {event.time} · {event.location}
-          </p>
-        </div>
-        <form action={logout}>
-          <button className="rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:text-text">Keluar</button>
-        </form>
-      </header>
+      <AdminHeader settings={settings} active="/admin" />
 
       <section className="grid grid-cols-3 gap-3">
         {stats.map((s) => (
@@ -61,39 +69,61 @@ export default async function AdminPage() {
         <section className="rounded-2xl border border-line bg-surface">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <h2 className="font-semibold">Daftar Pendaftar</h2>
-            <span className="text-xs text-muted">{bookings.length} orang</span>
+            <span className="text-xs text-muted">
+              {bookings.length} orang · {groups.size} pesanan
+            </span>
           </div>
 
           {bookings.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-muted">Belum ada yang mendaftar.</p>
           ) : (
             <ul className="divide-y divide-line">
-              {bookings.map((b) => (
-                <li key={b.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="grid h-10 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 font-bold text-accent">
-                    {b.seat_code}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{b.name}</p>
-                    <a
-                      href={waLink(b.phone, whatsappReminder(b.name, b.seat_code))}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-ok underline-offset-2 hover:underline"
-                    >
-                      {formatPhone(b.phone)} ↗
-                    </a>
-                  </div>
-                  <span className="hidden shrink-0 text-xs text-muted sm:block">{timeFmt.format(b.created_at)}</span>
-                  <form action={deleteBooking}>
-                    <input type="hidden" name="id" value={b.id} />
-                    <ConfirmButton
-                      message={`Hapus ${b.name} (kursi ${b.seat_code})? Kursi akan tersedia lagi.`}
-                      className="rounded-lg border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger/10"
-                    >
-                      Hapus
-                    </ConfirmButton>
-                  </form>
+              {[...groups.values()].map((group) => (
+                <li key={group[0].group_id} className={group.length > 1 ? "border-l-2 border-accent/60" : ""}>
+                  {group.length > 1 && (
+                    <p className="px-4 pt-3 text-xs font-semibold text-accent">
+                      Dipesan bersama · {group.length} kursi · {timeFmt.format(group[0].created_at)}
+                    </p>
+                  )}
+                  <ul>
+                    {group.map((b) => (
+                      <li key={b.id} className="flex items-center gap-3 px-4 py-3">
+                        <span className="grid h-10 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 font-bold text-accent">
+                          {b.seat_code}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold">
+                            {b.name}
+                            {!isBookableSeat(layout, b.seat_code) && (
+                              <span className="ml-2 text-xs font-normal text-danger">(di luar denah)</span>
+                            )}
+                          </p>
+                          <a
+                            href={waLink(b.phone, reminder(b))}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-ok underline-offset-2 hover:underline"
+                          >
+                            {formatPhone(b.phone)} ↗
+                          </a>
+                        </div>
+                        {group.length === 1 && (
+                          <span className="hidden shrink-0 text-xs text-muted sm:block">
+                            {timeFmt.format(b.created_at)}
+                          </span>
+                        )}
+                        <form action={deleteBooking}>
+                          <input type="hidden" name="id" value={b.id} />
+                          <ConfirmButton
+                            message={`Hapus ${b.name} (kursi ${b.seat_code})? Kursi akan tersedia lagi.`}
+                            className="rounded-lg border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger/10"
+                          >
+                            Hapus
+                          </ConfirmButton>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
@@ -111,7 +141,7 @@ export default async function AdminPage() {
             <div className="mx-auto mb-3 w-4/5">
               <div className="screen" />
             </div>
-            <SeatMap taken={taken} size="sm" />
+            <SeatMap layout={layout} taken={taken} size="sm" />
           </section>
 
           {bookings.length > 0 && (

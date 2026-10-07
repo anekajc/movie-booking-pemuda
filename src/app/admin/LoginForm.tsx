@@ -3,12 +3,13 @@
 import { useActionState } from "react";
 import { login } from "./actions";
 
-export function LoginForm() {
+export function LoginForm({ next = "/admin" }: { next?: string }) {
   const [state, action, pending] = useActionState(login, {});
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-sm place-items-center px-4">
       <form action={action} className="w-full rounded-2xl border border-line bg-surface p-6">
+        <input type="hidden" name="next" value={next} />
         <h1 className="text-xl font-bold">Admin</h1>
         <p className="mt-1 text-sm text-muted">Masukkan password untuk melanjutkan.</p>
         <input

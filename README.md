@@ -2,10 +2,11 @@
 
 A small seat-booking app for the church movie fellowship.
 
-- `/` shows the seat map. A guest picks **one** free seat.
-- `/booking?seat=C5` is where the guest enters a name and WhatsApp number. Each phone number can book only one seat.
-- `/sukses` shows the confirmation ticket and the event details.
-- `/admin` is password-protected. It shows counts, the registrant list with WhatsApp links, delete (which frees the seat), and a reset for the next event.
+- `/` shows the seat map. A guest picks **1 to 6** free seats.
+- `/booking?seats=C5,C6` is where the guest enters a name and WhatsApp number for each seat. One number can be reused inside a single booking (for example, parents booking for their kids), but it can't be used again in a separate booking.
+- `/sukses` shows the confirmation ticket with every seat and name, plus the event details.
+- `/admin` is password-protected. It shows counts and the registrants (seats booked together are grouped), each with a WhatsApp link. Delete frees a seat, and there's a reset for the next event.
+- `/admin/pengaturan` is where the admin edits the fellowship title, movie title, date, time, location and the seat grid (rows × seats per row).
 
 Stack: Next.js 16 · PostgreSQL · Tailwind CSS · Docker (deployed with Coolify).
 
@@ -13,18 +14,25 @@ Stack: Next.js 16 · PostgreSQL · Tailwind CSS · Docker (deployed with Coolify
 
 ## 1. Change the event details and seat layout
 
-Edit **`src/config/event.ts`**:
+Most settings are edited in the app: **`/admin` → Pengaturan**.
+
+| Field | Notes |
+| --- | --- |
+| Nama persekutuan, Judul film, Tempat | Shown on every page and in the WhatsApp reminder |
+| Tanggal, Jam | Shown as "Sabtu, 17 Oktober 2026 · 18.30 WIB" |
+| Jumlah baris × Kursi per baris | Rows are labeled A, B, C…. Up to 26 rows and 30 seats per row. The aisle goes in the middle of each row automatically. |
+
+The preview updates as you type. If shrinking the grid would leave a booked seat outside it, saving is refused. Delete those registrants first, or keep the grid bigger.
+
+A few things are still set in code, in **`src/config/event.ts`**. Commit and push after changing them, and Coolify redeploys:
 
 | Setting | What it does |
 | --- | --- |
-| `event.title / movie / date / time / location / note` | Text shown on every page |
-| `seating.rows` | Row labels, front to back. Example: `["A","B","C","D","E","F"]` |
-| `seating.seatsPerRow` | Number of seats in each row |
-| `seating.aisleAfter` | Draws an aisle gap after these seat numbers. Example: `[5]` |
-| `seating.blocked` | Seats that can't be booked, such as reserved seats. Example: `["A1","A2"]` |
+| `maxSeatsPerBooking` | Maximum seats per booking (default 6) |
+| `blockedSeats` | Seats that can't be booked, such as reserved seats. Example: `["A1","A2"]` |
+| `arrivalNote` | The "datang lebih awal" note on the confirmation page |
 | `whatsappReminder()` | Message pre-filled when the admin taps a phone number |
-
-Commit and push the change. Coolify then redeploys automatically.
+| `defaultSettings` | Values used until the admin saves the settings for the first time |
 
 ---
 
@@ -112,15 +120,16 @@ npm run dev        # http://localhost:3000
 ## Project layout
 
 ```
-db/schema.sql              the bookings table
+db/schema.sql              bookings + settings tables (also upgrades older databases)
 scripts/migrate.mjs        applies the schema (runs on every container start)
-src/config/event.ts        event details + seat layout  ← edit this
-src/lib/                   db, seat layout, phone normalisation, admin session
+src/config/event.ts        defaults, max seats per booking, blocked seats, message texts
+src/lib/                   db, settings, seat layout, phone normalisation, admin session
 src/components/            seat map, seat picker, event info
 src/app/page.tsx           seat selection
 src/app/booking/           name + phone form, booking server action
 src/app/sukses/            confirmation ticket
 src/app/admin/             login, dashboard, delete/reset actions
+src/app/admin/pengaturan/  event settings form (stored in the `settings` table)
 ```
 
-Phone numbers are stored in international form (`0812…` and `+62 812…` both become `62812…`). That way the same number can't register twice, and the WhatsApp links (`https://wa.me/62…`) work.
+Phone numbers are stored in international form (`0812…` and `+62 812…` both become `62812…`). That way the same number is recognized however it's typed, and the WhatsApp links (`https://wa.me/62…`) work.
