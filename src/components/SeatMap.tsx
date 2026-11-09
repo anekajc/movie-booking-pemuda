@@ -10,8 +10,8 @@ type Props = {
 };
 
 const stateStyles = {
-  free: "border border-line bg-surface-2 text-muted hover:border-accent hover:text-accent",
-  selected: "bg-accent text-accent-ink font-bold shadow-[0_0_14px_rgb(245_184_61/0.55)] scale-110",
+  free: "border border-line bg-surface-2 text-muted hover:border-accent hover:text-accent-text",
+  selected: "bg-accent text-accent-ink font-bold shadow-[0_0_14px_rgb(96_128_64/0.55)] scale-110",
   taken: "bg-taken text-muted/60",
   takenAdmin: "bg-accent text-accent-ink font-bold",
   blocked: "invisible",

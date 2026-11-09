@@ -81,7 +81,7 @@ export default async function AttendancePage({
                   aria-label="Kode tiket"
                   className="min-w-0 flex-1 rounded-xl border border-line bg-surface-2 px-4 py-2.5 font-mono uppercase outline-none placeholder:font-sans placeholder:normal-case placeholder:text-muted/60 focus:border-accent"
                 />
-                <button className="shrink-0 rounded-xl border border-line px-4 font-semibold hover:border-accent hover:text-accent">
+                <button className="shrink-0 rounded-xl border border-line px-4 font-semibold hover:border-accent hover:text-accent-text">
                   Cari
                 </button>
               </form>
@@ -161,7 +161,7 @@ function CheckInCard({ group }: { group: Booking[] }) {
                 defaultChecked={firstTime || !!b.checked_in_at}
                 className="size-5 shrink-0 accent-[#4cc38a]"
               />
-              <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 text-sm font-bold text-accent">
+              <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 text-sm font-bold text-accent-text">
                 {b.seat_code}
               </span>
               <span className="min-w-0 flex-1">

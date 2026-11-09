@@ -78,7 +78,7 @@ export function SettingsForm({ settings, bookedSeats }: { settings: EventSetting
           )}
         </div>
         <p className="rounded-xl bg-surface-2 px-4 py-3 text-sm">
-          {rows} × {perRow} = <span className="font-bold text-accent">{bookableCount(layout)} kursi</span>
+          {rows} × {perRow} = <span className="font-bold text-accent-text">{bookableCount(layout)} kursi</span>
           {layout.aisleAfter && <span className="text-muted"> · lorong setelah kursi {layout.aisleAfter}</span>}
         </p>
 

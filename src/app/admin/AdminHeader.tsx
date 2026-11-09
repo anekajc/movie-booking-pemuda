@@ -14,7 +14,7 @@ export function AdminHeader({ event, active }: { event: EventSettings; active: s
     <header className="mb-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">Admin</p>
+          <p className="text-xs font-semibold tracking-[0.25em] text-accent-text uppercase">Admin</p>
           <h1 className="mt-1 text-2xl font-extrabold">{event.movieTitle}</h1>
           <p className="text-sm text-muted">
             {formatEventDate(event.eventDate)} · {formatEventTime(event.eventTime)} · {event.location}

@@ -3,15 +3,18 @@
 @theme {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
-  --color-bg: #0d0f17;
-  --color-surface: #161926;
-  --color-surface-2: #1f2333;
-  --color-line: #2c3146;
-  --color-text: #eef0f6;
-  --color-muted: #9097ad;
-  --color-accent: #f5b83d;
-  --color-accent-ink: #1d1503;
-  --color-taken: #3a3f56;
+  /* Palette: #002000 #204020 #608040 #200020 #604040 (+ derived surfaces/text for contrast) */
+  --color-bg: #002000;
+  --color-surface: #0a260a;
+  --color-surface-2: #123012;
+  --color-line: #204020;
+  --color-text: #eef3ee;
+  --color-muted: #97a894;
+  --color-accent: #608040;
+  /* Lightened accent hue, used only for small accent-coloured text so it stays readable on the dark bg. */
+  --color-accent-text: #86a85a;
+  --color-accent-ink: #200020;
+  --color-taken: #604040;
   --color-danger: #f0616d;
   --color-ok: #4cc38a;
 }
@@ -22,7 +25,7 @@ html {
 
 body {
   background:
-    radial-gradient(ellipse 80% 40% at 50% -10%, rgb(245 184 61 / 0.12), transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgb(96 128 64 / 0.15), transparent 70%),
     var(--color-bg);
   background-attachment: fixed;
   color: var(--color-text);
@@ -33,8 +36,8 @@ body {
 .screen {
   height: 10px;
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  background: linear-gradient(to bottom, var(--color-accent), rgb(245 184 61 / 0.25));
-  box-shadow: 0 10px 40px 4px rgb(245 184 61 / 0.25);
+  background: linear-gradient(to bottom, var(--color-accent), rgb(96 128 64 / 0.25));
+  box-shadow: 0 10px 40px 4px rgb(96 128 64 / 0.25);
 }
 
 /* Edge glow on a horizontally scrollable area, only on the side that has more content.
@@ -43,8 +46,8 @@ body {
   background:
     linear-gradient(to right, var(--color-surface), transparent) left / 20px 100% no-repeat local,
     linear-gradient(to left, var(--color-surface), transparent) right / 20px 100% no-repeat local,
-    radial-gradient(farthest-side at 0 50%, rgb(245 184 61 / 0.35), transparent) left / 10px 100% no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, rgb(245 184 61 / 0.35), transparent) right / 10px 100% no-repeat scroll;
+    radial-gradient(farthest-side at 0 50%, rgb(96 128 64 / 0.35), transparent) left / 10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(96 128 64 / 0.35), transparent) right / 10px 100% no-repeat scroll;
 }
 
 /* Ticket perforation */

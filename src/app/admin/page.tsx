@@ -44,7 +44,7 @@ export default async function AdminPage() {
     });
 
   const stats = [
-    { label: "Terdaftar", value: registered, cls: "text-accent" },
+    { label: "Terdaftar", value: registered, cls: "text-accent-text" },
     { label: "Kursi tersisa", value: total - registered, cls: "text-ok" },
     { label: "Total kursi", value: total, cls: "text-text" },
   ];
@@ -78,14 +78,14 @@ export default async function AdminPage() {
               {[...groups.values()].map((group) => (
                 <li key={group[0].group_id} className={group.length > 1 ? "border-l-2 border-accent/60" : ""}>
                   {group.length > 1 && (
-                    <p className="px-4 pt-3 text-xs font-semibold text-accent">
+                    <p className="px-4 pt-3 text-xs font-semibold text-accent-text">
                       Dipesan bersama · {group.length} kursi · {formatStamp(group[0].created_at)}
                     </p>
                   )}
                   <ul>
                     {group.map((b) => (
                       <li key={b.id} className="flex items-center gap-3 px-4 py-3">
-                        <span className="grid h-10 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 font-bold text-accent">
+                        <span className="grid h-10 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 font-bold text-accent-text">
                           {b.seat_code}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -159,7 +159,7 @@ export default async function AdminPage() {
             </p>
             <ConfirmButton
               message="Arsipkan acara ini dan mulai acara baru? Denah kursi akan kosong untuk acara berikutnya."
-              className="mt-3 w-full rounded-lg bg-surface-2 py-2 text-sm font-semibold hover:text-accent"
+              className="mt-3 w-full rounded-lg bg-surface-2 py-2 text-sm font-semibold hover:text-accent-text"
             >
               Arsipkan &amp; mulai acara baru
             </ConfirmButton>

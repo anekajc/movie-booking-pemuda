@@ -79,7 +79,7 @@ export function SeatPicker({
                   ? `${current.length} kursi dipilih`
                   : "Kursi dipilih"}
             </p>
-            <p className="truncate text-xl font-bold text-accent">{current.length ? current.join(", ") : "—"}</p>
+            <p className="truncate text-xl font-bold text-accent-text">{current.length ? current.join(", ") : "—"}</p>
           </div>
           {current.length > 0 ? (
             <Link

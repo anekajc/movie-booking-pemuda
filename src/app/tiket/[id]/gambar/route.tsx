@@ -11,12 +11,12 @@ import { ticketUrl } from "@/lib/url";
 export const dynamic = "force-dynamic";
 
 const C = {
-  bg: "#0d0f17",
-  surface: "#161926",
-  line: "#2c3146",
-  text: "#eef0f6",
-  muted: "#9097ad",
-  accent: "#f5b83d",
+  bg: "#002000",
+  surface: "#0a260a",
+  line: "#204020",
+  text: "#eef3ee",
+  muted: "#97a894",
+  accent: "#86a85a",
 };
 
 let fonts: Promise<{ name: string; data: Buffer; weight: 400 | 600 | 800 }[]> | undefined;

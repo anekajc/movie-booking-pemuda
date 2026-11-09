@@ -8,7 +8,7 @@ const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakart
 export const metadata: Metadata = { title: "Nonton Bareng" };
 
 export const viewport: Viewport = {
-  themeColor: "#0d0f17",
+  themeColor: "#002000",
   width: "device-width",
   initialScale: 1,
 };

@@ -25,7 +25,7 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-lg px-4 pt-8 pb-32">
       <header className="mb-6 text-center">
-        <p className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">{settings.fellowshipTitle}</p>
+        <p className="text-xs font-semibold tracking-[0.25em] text-accent-text uppercase">{settings.fellowshipTitle}</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-balance">{settings.movieTitle}</h1>
         <div className="mt-5 rounded-2xl border border-line bg-surface/60 px-3 py-3">
           <EventInfo settings={settings} compact />

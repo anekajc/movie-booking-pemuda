@@ -20,7 +20,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <AdminHeader event={event} active="/admin/pengaturan" />
       {baru && (
         <p role="status" className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
-          <span className="font-semibold text-accent">Acara baru dibuat.</span> Acara sebelumnya tersimpan di Riwayat.
+          <span className="font-semibold text-accent-text">Acara baru dibuat.</span> Acara sebelumnya tersimpan di Riwayat.
           Perbarui detail acara di bawah lalu simpan.
         </p>
       )}

@@ -29,7 +29,7 @@ export default async function PastEventPage({ params }: { params: Promise<{ id: 
       </Link>
       <div className="mt-3 mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">{past.fellowshipTitle}</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-accent-text uppercase">{past.fellowshipTitle}</p>
           <h2 className="mt-1 text-xl font-extrabold">{past.movieTitle}</h2>
           <p className="text-sm text-muted">
             {formatEventDate(past.eventDate)} · {formatEventTime(past.eventTime)} · {past.location}
