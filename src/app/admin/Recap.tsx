@@ -9,7 +9,7 @@ export function RecapStats({ recap, live }: { recap: Recap; live?: boolean }) {
     { label: "Terdaftar", value: recap.registered, cls: "text-text" },
     { label: "Hadir", value: recap.attended, cls: "text-ok" },
     { label: live ? "Belum hadir" : "Tidak hadir", value: recap.registered - recap.attended, cls: "text-muted" },
-    { label: "Walk-in", value: recap.walkIns, cls: "text-accent" },
+    { label: "Walk-in", value: recap.walkIns, cls: "text-accent-text" },
   ];
   return (
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -20,8 +20,8 @@ export function RecapStats({ recap, live }: { recap: Recap; live?: boolean }) {
         </div>
       ))}
       <div className="col-span-2 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3 sm:col-span-1">
-        <p className="text-xs text-accent">Total hadir</p>
-        <p className="mt-1 text-2xl font-extrabold text-accent tabular-nums">{recap.attended + recap.walkIns}</p>
+        <p className="text-xs text-accent-text">Total hadir</p>
+        <p className="mt-1 text-2xl font-extrabold text-accent-text tabular-nums">{recap.attended + recap.walkIns}</p>
       </div>
     </section>
   );
@@ -31,7 +31,7 @@ export function DownloadRecap({ eventId }: { eventId: number }) {
   return (
     <a
       href={`/admin/rekap/${eventId}`}
-      className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent"
+      className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent-text"
     >
       <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
         <path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" strokeLinecap="round" strokeLinejoin="round" />
@@ -51,7 +51,7 @@ export function AttendeeList({ bookings, walkIns }: { bookings: Booking[]; walkI
     <ul className="divide-y divide-line">
       {bySeat.map((b) => (
         <li key={`b${b.id}`} className="flex items-center gap-3 px-4 py-3">
-          <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 text-sm font-bold text-accent">
+          <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg bg-accent/15 text-sm font-bold text-accent-text">
             {b.seat_code}
           </span>
           <Person name={b.name} phone={b.phone} />

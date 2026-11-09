@@ -40,7 +40,7 @@ export default async function TicketPage({
     type: "svg",
     margin: 0,
     errorCorrectionLevel: "M",
-    color: { dark: "#0d0f17", light: "#ffffff" },
+    color: { dark: "#002000", light: "#ffffff" },
   });
   const fileName = `tiket-${people.map((p) => p.seat_code).join("-")}.png`;
 
@@ -69,7 +69,7 @@ export default async function TicketPage({
       {/* Ticket */}
       <div className="overflow-hidden rounded-2xl bg-surface shadow-2xl shadow-black/40">
         <div className="border-b border-line/60 px-6 pt-6 pb-5">
-          <p className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">{event.fellowshipTitle}</p>
+          <p className="text-xs font-semibold tracking-[0.25em] text-accent-text uppercase">{event.fellowshipTitle}</p>
           <p className="mt-1 text-xl font-bold">{event.movieTitle}</p>
         </div>
         <div className="px-6 py-4">
@@ -81,7 +81,7 @@ export default async function TicketPage({
             {people.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-4 py-2.5">
                 <span className="min-w-0 truncate text-lg font-semibold">{p.name}</span>
-                <span className={`font-extrabold text-accent ${people.length > 1 ? "text-2xl" : "text-4xl"}`}>
+                <span className={`font-extrabold text-accent-text ${people.length > 1 ? "text-2xl" : "text-4xl"}`}>
                   {p.seat_code}
                 </span>
               </li>
@@ -122,7 +122,7 @@ export default async function TicketPage({
 
       {!event.archivedAt && (
         <div className="mt-6 rounded-2xl border border-accent/30 bg-accent/10 px-5 py-4 text-sm leading-relaxed">
-          <p className="font-semibold text-accent">Jangan lupa datang ya! 🎬</p>
+          <p className="font-semibold text-accent-text">Jangan lupa datang ya! 🎬</p>
           <p className="mt-1 text-text/90">{arrivalNote}</p>
         </div>
       )}

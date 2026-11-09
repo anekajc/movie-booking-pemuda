@@ -65,7 +65,7 @@ export function BookingForm({ seats }: { seats: string[] }) {
                     <button
                       type="button"
                       onClick={() => update(i, { phone: people[0].phone })}
-                      className="text-xs font-semibold text-accent underline-offset-2 hover:underline"
+                      className="text-xs font-semibold text-accent-text underline-offset-2 hover:underline"
                     >
                       Sama dengan orang ke-1
                     </button>

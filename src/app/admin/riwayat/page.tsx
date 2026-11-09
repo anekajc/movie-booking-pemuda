@@ -37,7 +37,7 @@ export default async function HistoryPage() {
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-lg font-extrabold text-accent tabular-nums">{e.attended + e.walkIns}</p>
+                    <p className="text-lg font-extrabold text-accent-text tabular-nums">{e.attended + e.walkIns}</p>
                     <p className="text-xs text-muted">hadir</p>
                   </div>
                   <span className="text-muted">›</span>
